@@ -3,6 +3,7 @@ package main
 import (
 	"errors"
 	"fmt"
+	"math"
 	"strconv"
 	"strings"
 	"unicode"
@@ -17,13 +18,16 @@ const (
 	MATHML
 )
 
+const SQUARE string = "sqr"
+
 // Precedence of operators
 var precedence = map[string]int{
-	"+": 1,
-	"-": 1,
-	"*": 2,
-	"/": 2,
-	"^": 3,
+	"+":   1,
+	"-":   1,
+	"*":   2,
+	"/":   2,
+	"^":   3,
+	"sqr": 4,
 }
 
 // ApplyOperation performs the arithmetic operation between two operands
@@ -41,7 +45,9 @@ func ApplyOperation(a, b float64, op string) (float64, error) {
 		}
 		return a / b, nil
 	case "^":
-		return float64(int(a) ^ int(b)), nil
+		return math.Pow(a, b), nil
+	case SQUARE:
+		return math.Sqrt(b), nil
 	default:
 		return 0, errors.New("unknown operator")
 	}
@@ -63,16 +69,29 @@ func EvaluateRPN(input interface{}) (float64, error) {
 		if num, err := strconv.ParseFloat(token, 64); err == nil {
 			stack = append(stack, num)
 		} else {
-			if len(stack) < 2 {
+			if len(stack) < 1 && (token == SQUARE) {
+				return 0, errors.New("invalid expression: not enough operands for square root")
+			} else if len(stack) < 2 {
 				return 0, errors.New("invalid expression: not enough operands")
 			}
-			b := stack[len(stack)-1]
-			a := stack[len(stack)-2]
-			stack = stack[:len(stack)-2]
+			var result float64
+			var err error
+			if token == SQUARE {
+				b := stack[len(stack)-1]
+				stack = stack[:len(stack)-1]
+				result, err = ApplyOperation(0, b, token)
+				if err != nil {
+					return 0, err
+				}
+			} else {
+				b := stack[len(stack)-1]
+				a := stack[len(stack)-2]
+				stack = stack[:len(stack)-2]
 
-			result, err := ApplyOperation(a, b, token)
-			if err != nil {
-				return 0, err
+				result, err = ApplyOperation(a, b, token)
+				if err != nil {
+					return 0, err
+				}
 			}
 			stack = append(stack, result)
 		}
