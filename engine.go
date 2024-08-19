@@ -143,6 +143,7 @@ func InfixToPostfix(expression string) ([]string, error) {
 		output = append(output, operators[len(operators)-1])
 		operators = operators[:len(operators)-1]
 	}
+	InfoLogger.Println("infix output", output)
 
 	return output, nil
 }

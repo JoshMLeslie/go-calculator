@@ -2,6 +2,7 @@ package main
 
 import (
 	"context"
+	"fmt"
 	"log"
 	"os"
 )
@@ -48,7 +49,12 @@ func (a *App) startup(ctx context.Context) {
 	a.ctx = ctx
 }
 
-func (a *App) Calculate(formula string) string {
-	InfoLogger.Println("Parsing ", formula)
-	return formula
+func (a *App) DoCalculate(
+	expression string,
+	processType PROCESS_TYPE,
+) string {
+	InfoLogger.Println("Parsing", expression, "of type", processType)
+	return fmt.Sprintf("%v", Calculate(
+		expression,
+		processType))
 }

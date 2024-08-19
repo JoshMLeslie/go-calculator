@@ -1,13 +1,22 @@
 <!DOCTYPE html>
 <html lang="en">
-<head>
-    <meta charset="UTF-8"/>
-    <meta content="width=device-width, initial-scale=1.0" name="viewport"/>
-    <title>calculator</title>
-</head>
-<body>
-<div id="root"></div>
-<script src="./src/main.tsx" type="module"></script>
-</body>
+	<head>
+		<meta charset="UTF-8" />
+		<meta content="width=device-width, initial-scale=1.0" name="viewport" />
+		<title>calculator</title>
+	</head>
+	<body>
+		<div id="root"></div>
+		<script src="./src/main.tsx" type="module"></script>
+		<script>
+            // coerce all button types to 'button' unless button has attribute:data='submit'
+			const buttons = document.querySelectorAll('button');
+			for (let i = 0; i < buttons.length; i++) {
+				const element = buttons[i];
+				if (!element.getAttribute('data') === 'submit') {
+					element.type = 'button';
+				}
+			}
+		</script>
+	</body>
 </html>
-
