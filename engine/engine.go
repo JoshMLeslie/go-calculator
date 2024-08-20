@@ -115,7 +115,6 @@ tokenLoop:
 
 	// dump remaining operators onto result, if any
 	if !opStack.IsEmpty() {
-		fmt.Println(opStack)
 		result = append(result, opStack.items...)
 	}
 
