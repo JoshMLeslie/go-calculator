@@ -1,4 +1,4 @@
-module gitub.com/joshmleslie/calculator
+module calculator
 
 go 1.21
 

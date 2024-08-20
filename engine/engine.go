@@ -1,57 +1,11 @@
-package main
+package engine
 
 import (
 	"errors"
 	"fmt"
-	"math"
 	"strconv"
 	"strings"
-	"unicode"
 )
-
-type PROCESS_TYPE int
-
-const (
-	ALGEBRAIC_BASIC PROCESS_TYPE = iota
-	ALGEBRAIC_ADVANCED
-	RPN
-	MATHML
-)
-
-const SQUARE string = "sqr"
-
-// Precedence of operators
-var precedence = map[string]int{
-	"+":   1,
-	"-":   1,
-	"*":   2,
-	"/":   2,
-	"^":   3,
-	"sqr": 4,
-}
-
-// ApplyOperation performs the arithmetic operation between two operands
-func ApplyOperation(a, b float64, op string) (float64, error) {
-	switch op {
-	case "+":
-		return a + b, nil
-	case "-":
-		return a - b, nil
-	case "*":
-		return a * b, nil
-	case "/":
-		if b == 0 {
-			return 0, errors.New("division by zero")
-		}
-		return a / b, nil
-	case "^":
-		return math.Pow(a, b), nil
-	case SQUARE:
-		return math.Sqrt(b), nil
-	default:
-		return 0, errors.New("unknown operator")
-	}
-}
 
 // EvaluateRPN evaluates a reverse Polish notation expression and returns the result.
 func EvaluateRPN(input interface{}) (float64, error) {
@@ -71,7 +25,7 @@ func EvaluateRPN(input interface{}) (float64, error) {
 		} else {
 			if len(stack) < 1 && (token == SQUARE) {
 				return 0, errors.New("invalid expression: not enough operands for square root")
-			} else if len(stack) < 2 {
+			} else if len(stack) < 2 && (token != SQUARE) {
 				return 0, errors.New("invalid expression: not enough operands")
 			}
 			var result float64
@@ -104,48 +58,68 @@ func EvaluateRPN(input interface{}) (float64, error) {
 }
 
 // InfixToPostfix converts an infix expression to postfix (RPN)
-func InfixToPostfix(expression string) ([]string, error) {
-	var output []string
-	var operators []string
+func InfixToPostfix(exp string) ([]string, error) {
+	var err error
+	parenOpen := false
+	opStack := StringStack{}
+	result := []string{}
 
-	tokens := strings.FieldsFunc(expression, func(r rune) bool {
-		return unicode.IsSpace(r) || strings.ContainsRune("+-*/^()", r)
-	})
+tokenLoop:
+	for _, char := range tokenize(exp) {
+		_, numErr := strconv.Atoi(char)
 
-	for _, token := range tokens {
-		switch {
-		case unicode.IsDigit(rune(token[0])):
-			output = append(output, token)
-		case token == "(":
-			operators = append(operators, token)
-		case token == ")":
-			for len(operators) > 0 && operators[len(operators)-1] != "(" {
-				output = append(output, operators[len(operators)-1])
-				operators = operators[:len(operators)-1]
+		if !isOperator(char) && numErr == nil {
+			result = append(result, char)
+		} else if isOpeningParenthesis(char) {
+			parenOpen = true
+			opStack.Push(char)
+		} else if isClosingParenthesis(char) {
+			if parenOpen {
+				parenOpen = false
+			} else {
+				err = errors.New("unopened parenthesis")
 			}
-			if len(operators) == 0 {
-				return nil, errors.New("mismatched parentheses")
+			for !opStack.IsEmpty() && !isMatchingParenthesis(opStack.Top(), char) {
+				result = append(result, opStack.Pop())
 			}
-			operators = operators[:len(operators)-1] // pop '('
-		default:
-			for len(operators) > 0 && precedence[operators[len(operators)-1]] >= precedence[token] {
-				output = append(output, operators[len(operators)-1])
-				operators = operators[:len(operators)-1]
+			opStack.Pop() // pop the matching close paren
+		} else if isOperator(char) {
+			top := opStack.Top()
+			higherPrecedence := hasHigherPrecedence(top, char)
+			openingParen := isOpeningParenthesis(top)
+
+			for !opStack.IsEmpty() &&
+				higherPrecedence &&
+				!openingParen {
+				result = append(result, opStack.Pop())
 			}
-			operators = append(operators, token)
+			opStack.Push(char)
+		} else if err != nil {
+			err = errors.New("err testing num: " + char)
+		} else {
+			err = errors.New("unknown token in expresion: " + char)
+		}
+		if err != nil {
+			break tokenLoop
 		}
 	}
 
-	for len(operators) > 0 {
-		if operators[len(operators)-1] == "(" {
-			return nil, errors.New("mismatched parentheses")
-		}
-		output = append(output, operators[len(operators)-1])
-		operators = operators[:len(operators)-1]
+	if parenOpen {
+		err = errors.New("unclosed parenthesis")
 	}
-	InfoLogger.Println("infix output", output)
 
-	return output, nil
+	if err != nil {
+		fmt.Println("err:", err)
+		return nil, err
+	}
+
+	// dump remaining operators onto result, if any
+	if !opStack.IsEmpty() {
+		fmt.Println(opStack)
+		result = append(result, opStack.items...)
+	}
+
+	return result, nil
 }
 
 // EvaluateExpression evaluates a given algebraic expression string

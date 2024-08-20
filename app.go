@@ -1,6 +1,7 @@
 package main
 
 import (
+	"calculator/engine"
 	"context"
 	"fmt"
 	"log"
@@ -51,10 +52,10 @@ func (a *App) startup(ctx context.Context) {
 
 func (a *App) DoCalculate(
 	expression string,
-	processType PROCESS_TYPE,
+	processType engine.PROCESS_TYPE,
 ) string {
 	InfoLogger.Println("Parsing", expression, "of type", processType)
-	return fmt.Sprintf("%v", Calculate(
+	return fmt.Sprintf("%v", engine.Calculate(
 		expression,
 		processType))
 }
