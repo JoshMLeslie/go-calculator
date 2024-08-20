@@ -23,14 +23,14 @@ func EvaluateRPN(input interface{}) (float64, error) {
 		if num, err := strconv.ParseFloat(token, 64); err == nil {
 			stack = append(stack, num)
 		} else {
-			if len(stack) < 1 && (token == SQUARE) {
+			if len(stack) < 1 && (token == SQUARE_TOKEN) {
 				return 0, errors.New("invalid expression: not enough operands for square root")
-			} else if len(stack) < 2 && (token != SQUARE) {
+			} else if len(stack) < 2 && (token != SQUARE_TOKEN) {
 				return 0, errors.New("invalid expression: not enough operands")
 			}
 			var result float64
 			var err error
-			if token == SQUARE {
+			if token == SQUARE_TOKEN {
 				b := stack[len(stack)-1]
 				stack = stack[:len(stack)-1]
 				result, err = ApplyOperation(0, b, token)
@@ -122,7 +122,7 @@ tokenLoop:
 }
 
 // EvaluateExpression evaluates a given algebraic expression string
-func EvalBasicAlgebra(expression string) (float64, error) {
+func EvalAlgebra(expression string) (float64, error) {
 	postfix, err := InfixToPostfix(expression)
 	if err != nil {
 		return 0, err
@@ -133,25 +133,22 @@ func EvalBasicAlgebra(expression string) (float64, error) {
 func Calculate(
 	expression string,
 	processType PROCESS_TYPE,
-) float64 {
+) (float64, error) {
 	var (
 		result float64
 		err    error
 	)
 	switch processType {
-	case ALGEBRAIC_BASIC:
-		result, err = EvalBasicAlgebra(expression)
-	case ALGEBRAIC_ADVANCED:
-		return 0
+	case ALGEBRAIC_BASIC, ALGEBRAIC_ADVANCED:
+		result, err = EvalAlgebra(expression)
 	case RPN:
 		result, err = EvaluateRPN(expression)
 	case MATHML:
-		return 0
+		return 0, nil
 	}
 	if err != nil {
 		fmt.Println("Error:", err)
-	} else {
-		fmt.Println("Result:", result)
+		return 0, err
 	}
-	return result
+	return result, nil
 }

@@ -17,7 +17,7 @@ func TestApplyOperation(t *testing.T) {
 		{3, 2, "/", 1.5, false},
 		{3, 0, "/", 0, true},
 		{2, 3, "^", 8, false},
-		{0, 4, SQUARE, 2, false},
+		{0, 4, SQUARE_LABEL, 2, false},
 		{3, 2, "unknown", 0, true},
 	}
 
@@ -41,7 +41,7 @@ func TestEvaluateRPN(t *testing.T) {
 		{"3 4 +", 7, false},
 		{"10 5 /", 2, false},
 		{"2 3 ^", 8, false},
-		{"4 sqr", 2, false},
+		{"4 " + SQUARE_LABEL, 2, false},
 		{"4 0 /", 0, true},
 		{"2 +", 0, true},
 	}
@@ -92,13 +92,13 @@ func TestEvalBasicAlgebra(t *testing.T) {
 		{"3 + 4", 7, false},
 		{"10 / 5", 2, false},
 		{"2 ^ 3", 8, false},
-		{"4 sqr", 2, false},
+		{"4 " + SQUARE_LABEL, 2, false},
 		{"2 + ( 3 * 4 )", 14, false},
 		{"3 + ( 4 * 2", 0, true},
 	}
 
 	for _, test := range tests {
-		result, err := EvalBasicAlgebra(test.expression)
+		result, err := EvalAlgebra(test.expression)
 		if (err != nil) != test.expectErr {
 			t.Errorf("EvalBasicAlgebra(%s) error = %v, expectErr %v", test.expression, err, test.expectErr)
 		}
@@ -120,12 +120,12 @@ func TestCalculate(t *testing.T) {
 		{"2 3 *", RPN, 6, false},
 		{"10 5 /", RPN, 2, false},
 		{"2 ^ 3", ALGEBRAIC_BASIC, 8, false},
-		{"4 sqr", ALGEBRAIC_BASIC, 2, false},
+		{"4 " + SQUARE_LABEL, ALGEBRAIC_BASIC, 2, false},
 		{"2 + ( 3 * 4 )", ALGEBRAIC_BASIC, 14, false},
 	}
 
 	for _, test := range tests {
-		result := Calculate(test.expression, test.processType)
+		result, _ := Calculate(test.expression, test.processType)
 		if result != test.expected {
 			t.Errorf("Calculate(%s, %d) = %f; want %f", test.expression, test.processType, result, test.expected)
 		}

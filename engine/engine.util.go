@@ -3,6 +3,7 @@ package engine
 import (
 	"errors"
 	"math"
+	"strings"
 	"unicode"
 )
 
@@ -15,17 +16,18 @@ const (
 	MATHML
 )
 
-const SQUARE string = "sqr"
+const SQUARE_LABEL string = "sqr"
+const SQUARE_TOKEN string = "√"
 
 var operators = map[string]bool{
-	"+":    true,
-	"-":    true,
-	"*":    true,
-	"/":    true,
-	"^":    true,
-	"(":    true,
-	")":    true,
-	SQUARE: true,
+	"+":          true,
+	"-":          true,
+	"*":          true,
+	"/":          true,
+	"^":          true,
+	"(":          true,
+	")":          true,
+	SQUARE_TOKEN: true,
 }
 
 func isOperator(char string) bool {
@@ -81,7 +83,7 @@ func ApplyOperation(a, b float64, op string) (float64, error) {
 		return a / b, nil
 	case "^":
 		return math.Pow(a, b), nil
-	case SQUARE:
+	case SQUARE_TOKEN:
 		return math.Sqrt(b), nil
 	default:
 		return 0, errors.New("unknown operator")
@@ -131,17 +133,17 @@ func hasHigherPrecedence(target, source string) bool {
 	return (target == "*" || target == "/") && (source == "+" || source == "-")
 }
 
-// Tokenize the equation by handling numbers, operators, and parentheses
+// Tokenize the raw equation
 func tokenize(exp string) []string {
 	var tokens []string
 	var currentToken string
+	var testSqr strings.Builder
 
 	for _, char := range exp {
-		switch {
-		case unicode.IsDigit(char) || char == '.':
+		if unicode.IsDigit(char) || char == '.' {
 			// If the character is a digit or a decimal point, add it to the current token
 			currentToken += string(char)
-		case char == '(' || char == ')' || char == '+' || char == '-' || char == '*' || char == '/' || char == '^':
+		} else if char == '(' || char == ')' || char == '+' || char == '-' || char == '*' || char == '/' || char == '^' {
 			// If the current token is not empty, add it to tokens
 			if currentToken != "" {
 				tokens = append(tokens, currentToken)
@@ -149,12 +151,19 @@ func tokenize(exp string) []string {
 			}
 			// Add the operator or parenthesis as a separate token
 			tokens = append(tokens, string(char))
-		default:
+		} else if char == 's' || char == 'q' || char == 'r' {
+			testSqr.WriteRune(char)
+		} else {
 			// If the character doesn't match any expected type, reset the current token
 			if currentToken != "" {
 				tokens = append(tokens, currentToken)
 				currentToken = ""
 			}
+		}
+
+		if testSqr.String() == SQUARE_LABEL {
+			testSqr.Reset()
+			currentToken += SQUARE_TOKEN
 		}
 	}
 
