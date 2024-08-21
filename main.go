@@ -1,6 +1,7 @@
 package main
 
 import (
+	"calculator/api"
 	"embed"
 
 	"github.com/wailsapp/wails/v2"
@@ -28,6 +29,8 @@ func main() {
 			app,
 		},
 	})
+
+	api.InitOpenAiAPI()
 
 	if err != nil {
 		println("Error:", err.Error())

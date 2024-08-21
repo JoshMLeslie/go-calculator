@@ -55,7 +55,11 @@ func (a *App) DoCalculate(
 	processType engine.PROCESS_TYPE,
 ) string {
 	InfoLogger.Println("Parsing", expression, "of type", processType)
-	return fmt.Sprintf("%v", engine.Calculate(
+	val, err := engine.Calculate(
 		expression,
-		processType))
+		processType)
+	if err != nil {
+		return fmt.Sprintf("Error: %v", err)
+	}
+	return fmt.Sprintf("%v", val)
 }

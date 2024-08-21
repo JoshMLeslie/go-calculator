@@ -26,8 +26,9 @@ jobs:
 
     - name: Inject secret keys
       run: |
-        echo "export OPEN_AI=${{ secrets.OPEN_AI }}" >> $GITHUB_ENV
-        # echo "export DATABASE_URL=${{ secrets.DATABASE_URL }}" >> $GITHUB_ENV
+        echo "export OPEN_AI_KEY=${{ secrets.OPEN_AI_KEY }}" >> $GITHUB_ENV
+        echo "export OPEN_AI_ORG=${{ secrets.OPEN_AI_ORG }}" >> $GITHUB_ENV
+        echo "export OPEN_AI_PROJ=${{ secrets.OPEN_AI_PROJ }}" >> $GITHUB_ENV
 
     - name: Build Wails App
       run: |
