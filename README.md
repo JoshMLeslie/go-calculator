@@ -1,5 +1,8 @@
 # README
 
+## Development terminated
+This was a test to learn Go / Wails. The fact that you can't assign optional arguments is bonkers.
+
 ## About
 
 This is the official Wails React-TS template.
